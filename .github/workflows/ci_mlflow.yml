@@ -1,0 +1,54 @@
+name: CI and MLflow Evaluation
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+      - '.gitignore'
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-evaluate:
+    name: Test and MLflow Logging
+    runs-on: ubuntu-latest
+
+    env:
+      MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
+      MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
+      MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
+      DAGSHUB_USER_TOKEN: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Smoke & Syntax Tests
+        run: |
+          python -m unittest discover -s tests -p "test_*.py" -v
+
+      - name: Run MLflow Model Evaluation
+        if: env.MLFLOW_TRACKING_URI != ''
+        run: |
+          python src/cnnClassifier/pipeline/stage_04_model_evaluation.py
+
+      - name: Verify Docker Build
+        run: |
+          docker build -t kidney-app:latest .

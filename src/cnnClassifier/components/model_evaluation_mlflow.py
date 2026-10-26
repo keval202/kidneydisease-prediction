@@ -8,8 +8,8 @@ from cnnClassifier.utils.common import save_json , create_directories, read_yaml
 import dagshub
 
 dagshub.init(
-    repo_owner="kallappakabbur874",
-    repo_name="MLOPS_KIDNEY_DISEASE_CNN",
+    repo_owner="keval202",
+    repo_name="kidneydisease-prediction",
     mlflow=True
 )
 
